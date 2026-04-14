@@ -69,3 +69,10 @@
 - [x] Deindex tracker tests
 - [x] Admin panel RBAC enforcement tests
 - [x] Auth logout test
+
+## Google OAuth & GitHub
+- [ ] Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to project secrets
+- [ ] Implement Google OAuth backend route (/api/oauth/google, /api/oauth/google/callback)
+- [ ] Add Google Sign-In button to landing page and login flow
+- [ ] Create public GitHub repository: privacyshield-app
+- [ ] Push project code to GitHub
