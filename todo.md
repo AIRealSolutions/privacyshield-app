@@ -71,8 +71,8 @@
 - [x] Auth logout test
 
 ## Google OAuth & GitHub
-- [ ] Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to project secrets
-- [ ] Implement Google OAuth backend route (/api/oauth/google, /api/oauth/google/callback)
-- [ ] Add Google Sign-In button to landing page and login flow
-- [ ] Create public GitHub repository: privacyshield-app
-- [ ] Push project code to GitHub
+- [x] Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to project secrets
+- [x] Implement Google OAuth backend route (/api/oauth/google, /api/oauth/google/callback)
+- [x] Add Google Sign-In button to landing page and login flow
+- [x] Create public GitHub repository: privacyshield-app
+- [x] Push project code to GitHub
