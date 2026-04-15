@@ -1,5 +1,6 @@
 import { and, desc, eq, sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 import {
   InsertUser,
   breachAlerts,
@@ -21,7 +22,11 @@ let _db: ReturnType<typeof drizzle> | null = null;
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      const pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+      });
+      _db = drizzle(pool);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -63,7 +68,11 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   if (!values.lastSignedIn) values.lastSignedIn = new Date();
   if (Object.keys(updateSet).length === 0) updateSet.lastSignedIn = new Date();
 
-  await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
+  // PostgreSQL upsert using ON CONFLICT
+  await db.insert(users).values(values).onConflictDoUpdate({
+    target: users.openId,
+    set: updateSet,
+  });
 }
 
 export async function getUserByOpenId(openId: string) {
@@ -105,7 +114,13 @@ export async function upsertUserSubscription(data: {
 }) {
   const db = await getDb();
   if (!db) return;
-  await db.insert(userSubscriptions).values(data).onDuplicateKeyUpdate({ set: data });
+  // PostgreSQL upsert: update existing subscription for this user
+  const existing = await db.select().from(userSubscriptions).where(eq(userSubscriptions.userId, data.userId)).limit(1);
+  if (existing.length > 0) {
+    await db.update(userSubscriptions).set(data as any).where(eq(userSubscriptions.userId, data.userId));
+  } else {
+    await db.insert(userSubscriptions).values(data as any);
+  }
 }
 
 // ─── Identity Profiles ────────────────────────────────────────────────────────
@@ -140,7 +155,7 @@ export async function createProfile(data: {
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const result = await db.insert(identityProfiles).values(data as any);
+  const result = await db.insert(identityProfiles).values(data as any).returning();
   return result[0];
 }
 
